@@ -1,0 +1,82 @@
+# Builds the Cadence installers for Windows, macOS, and Linux and publishes
+# them as a GitHub release, with the files the auto-updater reads.
+#
+# To release: set "version" in package.json, commit, then push a matching tag:
+#   git tag v1.0.1
+#   git push origin v1.0.1
+
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Check the tag matches package.json
+        shell: bash
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$version" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package.json ($version). Update the version, commit, and tag again."
+            exit 1
+          fi
+
+      - run: npm ci
+
+      - name: Type check
+        run: npm run lint
+
+      - name: Build installers
+        shell: bash
+        env:
+          # No signing certificates yet; build unsigned rather than fail.
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          npm run build
+          npm run build:desktop
+          npx electron-builder --config config/electron-builder.yml --publish never
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.os }}
+          if-no-files-found: error
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.zip
+            release/*.AppImage
+            release/*.blockmap
+            release/latest*.yml
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: true
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: installers/*
+          generate_release_notes: true
+          make_latest: true

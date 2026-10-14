@@ -34,7 +34,8 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
 mac:
-  target: dmg
+  # The zip is what installed Macs update from; the dmg is for first installs.
+  target: [dmg, zip]
   icon: src/desktop/icon.png
   category: public.app-category.developer-tools
 linux:
