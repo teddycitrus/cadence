@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Cadence's app icon: the mark (src/web/src/components/Logo.tsx) on sand. -->
+  <rect x="100" y="100" width="824" height="824" rx="190" fill="#e6d1af"/>
+  <g transform="translate(512 512) scale(12.2) translate(-29.5 -32)">
+    <path d="M40.02 19.98 A17 17 0 1 0 40.02 44.02" fill="none" stroke="#4b2434" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="47" cy="32" r="4.5" fill="#6a762e"/>
+  </g>
+</svg>

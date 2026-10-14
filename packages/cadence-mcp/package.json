@@ -1,0 +1,12 @@
+{
+  "name": "cadence-mcp",
+  "version": "0.1.0",
+  "description": "Cadence's issues, docs, comments, agents, scripts, Slack, Linear, and canvas tools for any local MCP host (Claude Code, Codex, Cursor), over stdio.",
+  "license": "ISC",
+  "type": "module",
+  "bin": { "cadence-mcp": "bin.mjs" },
+  "files": ["bin.mjs"],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1"
+  }
+}

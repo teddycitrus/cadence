@@ -1,0 +1,46 @@
+# Packages the Cadence desktop app. `npm run package` builds an installer into release/.
+appId: dev.cadence.app
+productName: Cadence
+directories:
+  output: release
+files:
+  - package.json
+  - dist/web/**/*
+  - dist/desktop/**/*
+  - "!dist/desktop/*.map"
+  - packages/cadence-build/**/*
+  # Source maps and docs inside packages are never read at runtime.
+  - "!**/node_modules/**/*.map"
+  - "!**/node_modules/**/{README,CHANGELOG,HISTORY}*"
+  - "!**/node_modules/**/*.md"
+# The UI is English; other Chromium language packs are left out.
+electronLanguages:
+  - en-US
+# Plain files, not an archive: the server spawns scripts by path (the agent SDK's CLI, the MCP
+# stdio proxy, the build plugins user projects load), which cannot run from inside one.
+asar: false
+# node-pty and @napi-rs/canvas use Node's stable binary interface; their prebuilt binaries load in Electron as they are.
+npmRebuild: false
+# electron-builder drops .d.ts files from packages, but TypeScript's language server cannot
+# start without its own lib.*.d.ts files; this puts them back.
+afterPack: scripts/after-pack.cjs
+# The app icon, rendered from src/desktop/icon.svg by scripts/build-icon.mjs.
+win:
+  target: nsis
+  icon: src/desktop/icon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+mac:
+  target: dmg
+  icon: src/desktop/icon.png
+  category: public.app-category.developer-tools
+linux:
+  target: AppImage
+  icon: src/desktop/icon.png
+  category: Development
+# Where installed apps look for updates (electron-updater reads the generated app-update.yml).
+publish:
+  provider: github
+  owner: teddycitrus
+  repo: cadence

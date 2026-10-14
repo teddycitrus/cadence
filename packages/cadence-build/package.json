@@ -1,0 +1,19 @@
+{
+  "name": "cadence-build",
+  "version": "0.1.0",
+  "description": "Build plugins that let Cadence canvases map rendered elements back to source: a webpack/Turbopack loader for Next.js and a Babel plugin for Expo. They do nothing unless CADENCE=1.",
+  "license": "ISC",
+  "main": "stamp.cjs",
+  "exports": {
+    ".": "./stamp.cjs",
+    "./stamp": "./stamp.cjs",
+    "./loader": "./loader.cjs",
+    "./next": "./next.cjs",
+    "./babel": "./babel.cjs"
+  },
+  "files": ["*.cjs", "*.d.cts"],
+  "dependencies": {
+    "@babel/parser": "^8.0.6",
+    "magic-string": "^1.4.3"
+  }
+}

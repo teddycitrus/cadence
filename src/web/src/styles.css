@@ -1,0 +1,482 @@
+@import "tailwindcss";
+@import "@fontsource-variable/hanken-grotesk/index.css";
+@import "@fontsource-variable/newsreader/opsz.css";
+@import "@fontsource-variable/newsreader/opsz-italic.css";
+@import "@fontsource-variable/jetbrains-mono/index.css";
+
+/*
+ * Cadence's look: warm sand paper, plum ink, olive for anything you can act
+ * on, with sage, brick, ochre, and dusty blue for status. Headings are set in
+ * a bookish serif (Newsreader), everything else in a warm grotesk (Hanken
+ * Grotesk).
+ *
+ * The UI is written with Tailwind's scale names, by role: zinc 950 is the
+ * page, 900 raised surfaces, 800 and 700 lines and hover fills, 600 to 400
+ * quieter text, 300 to 50 body and strong text; violet is the accent (olive
+ * here), emerald success (sage), red danger (brick), amber warning (ochre),
+ * sky information (dusty blue). Each theme fills those roles with its own
+ * colors, so every screen follows the theme.
+ */
+@theme {
+  --font-sans: "Hanken Grotesk Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", Menlo, monospace;
+
+  /* Sand (the light theme, and the default). */
+  --color-zinc-50: #3c1b29;
+  --color-zinc-100: #4b2434;
+  --color-zinc-200: #552d3d;
+  --color-zinc-300: #5f3746;
+  --color-zinc-400: #69444f;
+  --color-zinc-500: #775858;
+  --color-zinc-600: #98806e;
+  --color-zinc-700: #c3a983;
+  --color-zinc-800: #d7c09b;
+  --color-zinc-900: #efe2c9;
+  --color-zinc-950: #e6d1af;
+
+  --color-violet-50: #252a0d;
+  --color-violet-100: #2f350f;
+  --color-violet-200: #3a4113;
+  --color-violet-300: #485218;
+  --color-violet-400: #586422;
+  --color-violet-500: #6a762e;
+  --color-violet-600: #9aa261;
+  --color-violet-700: #b0b37c;
+  --color-violet-800: #c6c597;
+  --color-violet-900: #d3d0a6;
+  --color-violet-950: #dcd8b1;
+
+  --color-emerald-50: #1d3322;
+  --color-emerald-100: #243e28;
+  --color-emerald-200: #2c4930;
+  --color-emerald-300: #375a3c;
+  --color-emerald-400: #446a48;
+  --color-emerald-500: #577d58;
+  --color-emerald-600: #8ba687;
+  --color-emerald-700: #a6ba9c;
+  --color-emerald-800: #bfcbab;
+  --color-emerald-900: #cfd5b5;
+  --color-emerald-950: #d8d8b6;
+
+  --color-red-50: #47130b;
+  --color-red-100: #59190f;
+  --color-red-200: #6b2013;
+  --color-red-300: #86291a;
+  --color-red-400: #9c331e;
+  --color-red-500: #b6452a;
+  --color-red-600: #cd785c;
+  --color-red-700: #db9a7e;
+  --color-red-800: #e3b294;
+  --color-red-900: #e8c1a1;
+  --color-red-950: #e9c7a4;
+
+  --color-amber-50: #3b2805;
+  --color-amber-100: #4a3307;
+  --color-amber-200: #5a3f09;
+  --color-amber-300: #6e4f0d;
+  --color-amber-400: #866013;
+  --color-amber-500: #a5781d;
+  --color-amber-600: #c4994a;
+  --color-amber-700: #d1ad68;
+  --color-amber-800: #dabd81;
+  --color-amber-900: #e0c691;
+  --color-amber-950: #e4ca9a;
+
+  --color-sky-50: #13283a;
+  --color-sky-100: #193340;
+  --color-sky-200: #1f3e4b;
+  --color-sky-300: #2a5161;
+  --color-sky-400: #366375;
+  --color-sky-500: #49788a;
+  --color-sky-600: #84a1a8;
+  --color-sky-700: #a0b3b1;
+  --color-sky-800: #bbc4ba;
+  --color-sky-900: #cbcebe;
+  --color-sky-950: #d4d1bc;
+
+  /* Terracotta and mustard, for priorities and the highlight swatch. */
+  --color-orange-400: #9a4f22;
+  --color-yellow-300: #d9b85a;
+  --color-yellow-400: #806208;
+
+  /* Overlays behind dialogs: a deep plum, not black. */
+  --color-black: #1f1118;
+
+  --shadow-xl: 0 10px 28px -10px rgb(60 27 41 / 0.28), 0 2px 6px -2px rgb(60 27 41 / 0.12);
+  --shadow-2xl: 0 18px 44px -14px rgb(60 27 41 / 0.34), 0 3px 10px -4px rgb(60 27 41 / 0.14);
+}
+
+:root {
+  color-scheme: light;
+}
+
+/* Night (the dark theme): bark, cream ink, and lighter olive. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-zinc-50: #f6ebda;
+  --color-zinc-100: #ecdec6;
+  --color-zinc-200: #dfceb3;
+  --color-zinc-300: #ccb99c;
+  --color-zinc-400: #b09c83;
+  --color-zinc-500: #93806b;
+  --color-zinc-600: #6f6151;
+  --color-zinc-700: #4f453a;
+  --color-zinc-800: #3a322a;
+  --color-zinc-900: #2a241f;
+  --color-zinc-950: #1e1a16;
+
+  --color-violet-50: #f1f2d9;
+  --color-violet-100: #e3e6b8;
+  --color-violet-200: #d2d79a;
+  --color-violet-300: #bfc57e;
+  --color-violet-400: #a9b064;
+  --color-violet-500: #929a4e;
+  --color-violet-600: #78803d;
+  --color-violet-700: #5f6631;
+  --color-violet-800: #474d27;
+  --color-violet-900: #33381f;
+  --color-violet-950: #252818;
+
+  --color-emerald-50: #eaf2ea;
+  --color-emerald-100: #d4e3d3;
+  --color-emerald-200: #bad2ba;
+  --color-emerald-300: #9fc0a0;
+  --color-emerald-400: #86ad88;
+  --color-emerald-500: #6e9670;
+  --color-emerald-600: #577a59;
+  --color-emerald-700: #435f45;
+  --color-emerald-800: #334836;
+  --color-emerald-900: #253528;
+  --color-emerald-950: #1b261d;
+
+  --color-red-50: #fbe9e2;
+  --color-red-100: #f6cfc1;
+  --color-red-200: #efb09b;
+  --color-red-300: #e68e72;
+  --color-red-400: #da7356;
+  --color-red-500: #c65b3f;
+  --color-red-600: #a44731;
+  --color-red-700: #823827;
+  --color-red-800: #612b1f;
+  --color-red-900: #452018;
+  --color-red-950: #2e1611;
+
+  --color-amber-50: #fbf1d9;
+  --color-amber-100: #f4dfaa;
+  --color-amber-200: #ebcb7e;
+  --color-amber-300: #dfb85c;
+  --color-amber-400: #cfa144;
+  --color-amber-500: #b88934;
+  --color-amber-600: #976e29;
+  --color-amber-700: #765621;
+  --color-amber-800: #57401b;
+  --color-amber-900: #3e2e15;
+  --color-amber-950: #2a2010;
+
+  --color-sky-50: #e6f0f2;
+  --color-sky-100: #c9dde2;
+  --color-sky-200: #a8c7cf;
+  --color-sky-300: #8bb2bd;
+  --color-sky-400: #6f9aa8;
+  --color-sky-500: #578292;
+  --color-sky-600: #456a78;
+  --color-sky-700: #36535e;
+  --color-sky-800: #2a3f47;
+  --color-sky-900: #1f2e34;
+  --color-sky-950: #172226;
+
+  --color-orange-400: #e09160;
+  --color-yellow-300: #dcbb5e;
+  --color-yellow-400: #d8b553;
+
+  --color-black: #0c0907;
+
+  --shadow-xl: 0 10px 28px -10px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+  --shadow-2xl: 0 18px 44px -14px rgb(0 0 0 / 0.6), 0 3px 10px -4px rgb(0 0 0 / 0.3);
+}
+
+/*
+ * A canvas board keeps its own color; labels and menus on it take the neutrals
+ * that suit that color (Night's on a dark board, Sand's on a light one).
+ */
+[data-board-tone="dark"] {
+  --color-zinc-50: #f6ebda;
+  --color-zinc-100: #ecdec6;
+  --color-zinc-200: #dfceb3;
+  --color-zinc-300: #ccb99c;
+  --color-zinc-400: #b09c83;
+  --color-zinc-500: #93806b;
+  --color-zinc-600: #6f6151;
+  --color-zinc-700: #4f453a;
+  --color-zinc-800: #3a322a;
+  --color-zinc-900: #2a241f;
+  --color-zinc-950: #1e1a16;
+}
+[data-board-tone="light"] {
+  --color-zinc-50: #3c1b29;
+  --color-zinc-100: #4b2434;
+  --color-zinc-200: #552d3d;
+  --color-zinc-300: #5f3746;
+  --color-zinc-400: #69444f;
+  --color-zinc-500: #775858;
+  --color-zinc-600: #98806e;
+  --color-zinc-700: #c3a983;
+  --color-zinc-800: #d7c09b;
+  --color-zinc-900: #efe2c9;
+  --color-zinc-950: #e6d1af;
+}
+
+/*
+ * Headings in the serif, at a book weight. Unlayered, so this wins over
+ * weight utilities like font-semibold that were written for the sans.
+ */
+h1,
+h2:not(.text-xs, .text-sm),
+.font-display {
+  font-family: var(--font-serif);
+  font-weight: 480;
+  font-optical-sizing: auto;
+  letter-spacing: -0.012em;
+}
+
+/* Checkboxes, radios, and ranges in the accent. */
+input,
+progress {
+  accent-color: var(--color-violet-400);
+}
+
+::selection {
+  background-color: color-mix(in oklab, var(--color-violet-500) 32%, transparent);
+}
+
+/* The sidebar toggle (Ctrl+\) hides each view's list pane. */
+:root[data-sidebar="hidden"] [data-sidebar-pane] {
+  display: none;
+}
+
+body {
+  @apply bg-zinc-950 text-zinc-100 antialiased;
+  font-feature-settings: "ss01", "cv11";
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-zinc-800;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-zinc-700;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.prose-doc h1,
+.prose-doc h2,
+.prose-doc h3,
+.prose-doc h4 {
+  @apply mt-6 mb-2 font-serif text-zinc-100;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.prose-doc h1 {
+  @apply text-3xl leading-tight;
+}
+.prose-doc h2 {
+  @apply text-2xl leading-snug;
+}
+.prose-doc h3 {
+  @apply text-lg;
+}
+.prose-doc h4 {
+  @apply text-sm text-zinc-300;
+}
+.prose-doc p,
+.prose-doc ul,
+.prose-doc ol,
+.prose-doc pre,
+.prose-doc table,
+.prose-doc blockquote {
+  @apply my-2 text-sm leading-6 text-zinc-300;
+}
+.prose-doc ul {
+  @apply list-disc pl-5;
+}
+.prose-doc ol {
+  @apply list-decimal pl-5;
+}
+.prose-doc li > input[type="checkbox"] {
+  @apply mr-1.5 align-middle;
+}
+.prose-doc code {
+  @apply rounded bg-zinc-800 px-1 py-0.5 font-mono text-[0.8em];
+}
+.prose-doc pre {
+  @apply overflow-x-auto rounded-lg bg-zinc-900 p-3;
+}
+.prose-doc pre code {
+  @apply bg-transparent p-0;
+}
+.prose-doc a {
+  @apply text-violet-300 underline decoration-violet-600 underline-offset-[3px] hover:decoration-violet-300;
+}
+.prose-doc blockquote {
+  @apply border-l-2 border-zinc-700 pl-3 text-zinc-400;
+}
+.prose-doc table {
+  @apply w-full border-collapse;
+}
+.prose-doc th,
+.prose-doc td {
+  @apply border border-zinc-800 px-2 py-1 text-left;
+}
+
+/* Doc editor (TipTap) */
+.tiptap p.is-editor-empty:first-child::before,
+.tiptap .is-empty::before {
+  @apply pointer-events-none float-left h-0 text-zinc-600;
+  content: attr(data-placeholder);
+}
+.tiptap ul[data-type="taskList"] {
+  @apply list-none pl-1;
+}
+.tiptap ul[data-type="taskList"] li {
+  @apply flex items-start gap-2;
+}
+.tiptap ul[data-type="taskList"] li > label {
+  @apply mt-1 shrink-0 select-none;
+}
+.tiptap ul[data-type="taskList"] li > div {
+  @apply min-w-0 flex-1;
+}
+.tiptap ul[data-type="taskList"] li[data-checked="true"] > div {
+  @apply text-zinc-500 line-through;
+}
+.tiptap img {
+  @apply my-3 max-w-full rounded-lg;
+}
+.tiptap img.ProseMirror-selectednode {
+  @apply ring-2 ring-violet-500;
+}
+.tiptap table {
+  @apply my-3 table-fixed;
+}
+.tiptap td,
+.tiptap th {
+  @apply relative min-w-16 align-top;
+}
+.tiptap th {
+  @apply bg-zinc-900 font-semibold;
+}
+.tiptap .selectedCell::after {
+  @apply pointer-events-none absolute inset-0 bg-violet-500/20;
+  content: "";
+}
+.tiptap hr {
+  @apply my-6 border-zinc-800;
+}
+.tiptap hr.ProseMirror-selectednode {
+  @apply border-violet-500;
+}
+
+/* Other people's carets in a live doc. */
+.collaboration-carets__caret {
+  position: relative;
+  margin-left: -1px;
+  margin-right: -1px;
+  border-left: 1px solid;
+  border-right: 1px solid;
+  word-break: normal;
+  pointer-events: none;
+}
+.collaboration-carets__label {
+  position: absolute;
+  top: -1.4em;
+  left: -1px;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px 3px 3px 0;
+  color: #1e1a16;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Find in a chat (Ctrl+F). */
+::highlight(cadence-find) {
+  background-color: color-mix(in oklab, var(--color-amber-500) 45%, transparent);
+  color: inherit;
+}
+
+/* Doc text and background colors (data-color on <span> and <mark>, see docs/colors.ts). */
+[data-color="gray"]:not(mark) { color: #857566; }
+[data-color="brown"]:not(mark) { color: #8a5a3c; }
+[data-color="orange"]:not(mark) { color: #b5602a; }
+[data-color="yellow"]:not(mark) { color: #9a7414; }
+[data-color="green"]:not(mark) { color: #557035; }
+[data-color="blue"]:not(mark) { color: #3d6a7c; }
+[data-color="purple"]:not(mark) { color: #6d4a7a; }
+[data-color="pink"]:not(mark) { color: #a5506a; }
+[data-color="red"]:not(mark) { color: #a8382a; }
+:root[data-theme="dark"] [data-color="gray"]:not(mark) { color: #a8998a; }
+:root[data-theme="dark"] [data-color="brown"]:not(mark) { color: #c59a78; }
+:root[data-theme="dark"] [data-color="orange"]:not(mark) { color: #e09160; }
+:root[data-theme="dark"] [data-color="yellow"]:not(mark) { color: #dcbb5e; }
+:root[data-theme="dark"] [data-color="green"]:not(mark) { color: #a3b86f; }
+:root[data-theme="dark"] [data-color="blue"]:not(mark) { color: #85b0c0; }
+:root[data-theme="dark"] [data-color="purple"]:not(mark) { color: #b994c4; }
+:root[data-theme="dark"] [data-color="pink"]:not(mark) { color: #dd93a8; }
+:root[data-theme="dark"] [data-color="red"]:not(mark) { color: #e2806b; }
+mark[data-color] { color: inherit; border-radius: 3px; padding: 0 2px; }
+mark[data-color="gray"] { background: rgb(133 117 102 / 0.25); }
+mark[data-color="brown"] { background: rgb(138 90 60 / 0.25); }
+mark[data-color="orange"] { background: rgb(214 122 60 / 0.3); }
+mark[data-color="yellow"] { background: rgb(214 170 60 / 0.38); }
+mark[data-color="green"] { background: rgb(120 145 70 / 0.3); }
+mark[data-color="blue"] { background: rgb(80 135 155 / 0.28); }
+mark[data-color="purple"] { background: rgb(130 90 145 / 0.25); }
+mark[data-color="pink"] { background: rgb(200 100 130 / 0.25); }
+mark[data-color="red"] { background: rgb(190 70 50 / 0.25); }
+
+/*
+ * The logo's loading animation (components/Logo.tsx): the arc draws itself and
+ * lets go, a breath every 1.6 s, while the dot beats twice in that time.
+ */
+.cadence-mark-animated .cadence-mark-arc {
+  stroke-dasharray: 100;
+  animation: cadence-draw 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.cadence-mark-animated .cadence-mark-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cadence-beat 0.8s ease-in-out infinite;
+}
+@keyframes cadence-draw {
+  0% { stroke-dashoffset: 100; }
+  45%, 60% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -100; }
+}
+@keyframes cadence-beat {
+  0%, 100% { transform: scale(1); }
+  18% { transform: scale(1.4); }
+  40% { transform: scale(0.95); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cadence-mark-animated .cadence-mark-arc {
+    animation: none;
+  }
+  .cadence-mark-animated .cadence-mark-dot {
+    animation: cadence-fade 1.6s ease-in-out infinite;
+  }
+  @keyframes cadence-fade {
+    50% { opacity: 0.35; }
+  }
+}
