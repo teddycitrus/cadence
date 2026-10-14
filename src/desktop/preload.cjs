@@ -3,8 +3,16 @@
 // only these functions, never Electron or Node.
 const { contextBridge, ipcRenderer, webUtils } = require("electron");
 
+// Which Cadence this window shows: this computer's ("local") or a team's server ("team").
+const connection = ipcRenderer.sendSync("cadence:connection");
+
 contextBridge.exposeInMainWorld("cadenceDesktop", {
   platform: process.platform,
+  connection,
+  /** Joins a team's Cadence server (an address or an invite link); resolves to { ok } or { ok: false, error }. */
+  joinServer: (address) => ipcRenderer.invoke("cadence:join-server", String(address)),
+  /** Goes back to running Cadence on this computer. */
+  useThisComputer: () => ipcRenderer.invoke("cadence:use-this-computer"),
   /** A folder chosen in the system dialog, or null when cancelled. */
   pickFolder: (title) => ipcRenderer.invoke("cadence:pick-folder", typeof title === "string" ? title : undefined),
   /** The path of a file or folder dropped onto the page. */

@@ -24,6 +24,7 @@ import { useDesignContext } from "./useDesignContext";
 import { useFigmaPaste, useOpenChatOnContext } from "./useCanvasEvents";
 import { IN_PANE } from "../Workbench";
 import { NO_APP, storySrc } from "./story-src";
+import { linkOrigin } from "../../public-url";
 
 /** The canvas editor: frames on a board, element selection, style panel, comments, and visual checks. */
 export function CanvasEditor({ snapshot, workspaceId, path }: { snapshot: Snapshot; workspaceId: string; path: string }) {
@@ -401,7 +402,7 @@ export function CanvasEditor({ snapshot, workspaceId, path }: { snapshot: Snapsh
                 await api.moveCanvasComment(workspaceId, id, to);
                 setComments(await api.canvasComments(workspaceId));
               }}
-              linkFor={(id) => `${window.location.origin}${window.location.pathname}#/canvas/${encodeURIComponent(`${workspaceId}|${path}`)}?comment=${id}`}
+              linkFor={(id) => `${linkOrigin()}${window.location.pathname}#/canvas/${encodeURIComponent(`${workspaceId}|${path}`)}?comment=${id}`}
               initialOpen={new URLSearchParams(window.location.hash.split("?")[1] ?? "").get("comment")}
               onUnread={async (id) => {
                 await api.unreadCanvasThread(workspaceId, id);

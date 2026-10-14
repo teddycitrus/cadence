@@ -3,13 +3,15 @@ import { fork, type ChildProcess } from "node:child_process";
 import { createWriteStream, mkdirSync } from "node:fs";
 import { createServer } from "node:net";
 import { join } from "node:path";
+import { isCadence, onOrigin, parseServerAddress } from "./connection";
 import { readSettings, registerNative, rememberBounds, writeSettings } from "./native";
 import { setupUpdates } from "./updates";
 
-// The desktop shell: one window around the Cadence server, which runs as a
-// child process on Electron's own Node (so heavy server work never stalls the
-// window). The server keeps the same port between launches when it can,
-// because MCP connections, machine links, and share links point at it.
+// The desktop shell: one window around a Cadence server. By default that is
+// this computer's own, run as a child process on Electron's own Node (so heavy
+// server work never stalls the window), on the same port between launches
+// because MCP connections, machine links, and share links point at it. Someone
+// who joined a team's server opens that one instead and runs none here.
 
 const DEFAULT_PORT = 4317;
 const userData = app.getPath("userData");
@@ -73,9 +75,65 @@ function startServer(port: number): Promise<string> {
     child.on("message", first);
     child.once("exit", (code) => {
       reject(new Error(`The server stopped (exit code ${code}). See ${logFile}.`));
-      if (!quitting) void serverDied(code);
+      // Not when it was stopped on purpose (quitting, or joining a team's server).
+      if (!quitting && server === child) void serverDied(code);
     });
   });
+}
+
+/** Stops this computer's server (on joining a team's), resolving once it has exited. */
+function stopLocalServer(): Promise<void> {
+  const child = server;
+  server = null;
+  if (!child) return Promise.resolve();
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => (child.kill(), resolve()), 5000);
+    child.once("exit", () => (clearTimeout(timer), resolve()));
+    child.send("shutdown");
+  });
+}
+
+/** Opens the server this app uses: the team's it joined, else this computer's own (started now). */
+async function connect(page = ""): Promise<void> {
+  let team = readSettings().server ?? null;
+  while (team) {
+    if (await isCadence(team)) {
+      origin = team;
+      await window?.loadURL(origin + page);
+      return;
+    }
+    const { response } = await dialog.showMessageBox({
+      type: "warning",
+      message: "Your team's Cadence is not answering",
+      detail: `${team} could not be reached. Check your connection, or work on this computer for now (you can join the team again in Settings).`,
+      buttons: ["Try again", "Use this computer", "Quit"],
+      defaultId: 0,
+    });
+    if (response === 2) return app.quit();
+    if (response === 1) {
+      writeSettings({ server: null });
+      team = null;
+    }
+  }
+  if (!server) origin = await startServer(await pickPort());
+  await window?.loadURL(origin + page);
+}
+
+/** Joins a team's server: checks a Cadence answers there, stops this computer's, and opens the team's. */
+async function joinServer(raw: string): Promise<void> {
+  const { origin: team, hash } = parseServerAddress(raw);
+  if (!(await isCadence(team))) throw new Error(`No Cadence answers at ${team}. Check the address with whoever runs your team's server.`);
+  await stopLocalServer();
+  writeSettings({ server: team });
+  origin = team;
+  await window?.loadURL(team + hash);
+}
+
+/** Leaves the team's server and goes back to the Cadence on this computer. */
+async function useThisComputer(): Promise<void> {
+  writeSettings({ server: null });
+  await window?.loadURL(LOADING);
+  await connect();
 }
 
 /** The server's own memory in MB, asked over IPC. */
@@ -160,12 +218,12 @@ function createWindow(): BrowserWindow {
   win.once("ready-to-show", () => win.show());
   // Cadence's own pages (popped-out canvases and chats) open in app windows; everything else goes to the default browser.
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (origin && url.startsWith(origin)) return { action: "allow", overrideBrowserWindowOptions: { icon: join(__dirname, "icon.png"), backgroundColor: "#e6d1af", autoHideMenuBar: true, width: 1200, height: 800, webPreferences } };
+    if (onOrigin(url, origin)) return { action: "allow", overrideBrowserWindowOptions: { icon: join(__dirname, "icon.png"), backgroundColor: "#e6d1af", autoHideMenuBar: true, width: 1200, height: 800, webPreferences } };
     if (/^https?:\/\//.test(url)) void shell.openExternal(url);
     return { action: "deny" };
   });
   win.webContents.on("will-navigate", (e, url) => {
-    if (url.startsWith(origin) || url.startsWith("data:")) return;
+    if (onOrigin(url, origin) || url.startsWith("data:")) return;
     e.preventDefault();
     if (/^https?:\/\//.test(url)) void shell.openExternal(url);
   });
@@ -176,7 +234,15 @@ function createWindow(): BrowserWindow {
 app.whenReady().then(async () => {
   if (!primary) return;
   const updates = setupUpdates(() => window);
-  registerNative({ window: () => window, serverMemoryMb, updates });
+  registerNative({
+    window: () => window,
+    serverMemoryMb,
+    updates,
+    origin: () => origin,
+    connection: () => ({ mode: readSettings().server ? "team" : "local", url: origin || null }),
+    joinServer,
+    useThisComputer,
+  });
   // Bug reports record the screen; the system picker lets the person choose what.
   session.defaultSession.setDisplayMediaRequestHandler(
     (_req, callback) => {
@@ -187,8 +253,7 @@ app.whenReady().then(async () => {
   window = createWindow();
   await window.loadURL(LOADING);
   try {
-    origin = await startServer(await pickPort());
-    await window.loadURL(origin);
+    await connect();
   } catch (err) {
     dialog.showErrorBox("Cadence could not start", String(err instanceof Error ? err.message : err));
     app.quit();

@@ -24,13 +24,28 @@ function bearerMatches(expected: string, header: string | undefined): boolean {
 }
 
 const LOOPBACK = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
+const LOOPBACK_HOST = /^(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$/i;
+
+/** Whether a request was addressed to this machine by a loopback name (not a public address that tunnels here). */
+export function addressedLocally(req: IncomingMessage): boolean {
+  return LOOPBACK_HOST.test(req.headers.host ?? "");
+}
 
 /**
  * Requests from this machine act as the owner, unless they came through a
- * proxy (which would make every visitor look local) or local trust is off.
+ * proxy or tunnel (which would make every visitor look local) or local trust
+ * is off. A tunnel connects from this machine too, so the request must also be
+ * addressed to a loopback name and carry no proxy headers.
  */
 export function isLocal(req: IncomingMessage, trustLocal: boolean): boolean {
-  return trustLocal && LOOPBACK.has(req.socket.remoteAddress ?? "") && !req.headers["x-forwarded-for"] && !req.headers.forwarded;
+  return (
+    trustLocal &&
+    LOOPBACK.has(req.socket.remoteAddress ?? "") &&
+    addressedLocally(req) &&
+    !req.headers["x-forwarded-for"] &&
+    !req.headers.forwarded &&
+    !req.headers["cf-connecting-ip"]
+  );
 }
 
 export interface AuthOptions {

@@ -3,8 +3,9 @@ import { orgParam } from "../../org";
 import type { ShareLink } from "../../../../core/types";
 import { api } from "../../api";
 import { Button, ErrorText, useAction } from "../ui";
+import { linkOrigin } from "../../public-url";
 
-const urlOf = (id: string) => `${window.location.origin}/#/share/${id}${orgParam()}`;
+const urlOf = (id: string) => `${linkOrigin()}/#/share/${id}${orgParam()}`;
 
 /** Turns a read-only public link for a doc, issue, or canvas on and off. */
 export function ShareButton({ kind, refId }: { kind: ShareLink["kind"]; refId: string }) {

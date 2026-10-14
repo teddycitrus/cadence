@@ -15,6 +15,8 @@ import { MachineLink } from "../machines/link";
 import { machineLinkRoutes } from "./routes/machine-link";
 import { attachLspSockets } from "../lsp/socket";
 import compression from "compression";
+import { SharingService, type SharingOptions } from "../sharing/service";
+import { sharingRoutes } from "./routes/sharing";
 
 export interface CadenceOptions {
   dataDir: string;
@@ -28,10 +30,17 @@ export interface CadenceOptions {
   runtimeFor: (org: Org, providerEnv: (model?: string) => NodeJS.ProcessEnv) => ChatRuntime;
   /** Extra container options, for tests (in-memory databases, fake fetch). */
   containerOptions?: Partial<ContainerOptions>;
+  /** Where people elsewhere reach this server (CADENCE_PUBLIC_URL), when it is already public. */
+  publicUrl?: string | null;
+  /** The owner's sign-in for a new team server (CADENCE_OWNER_EMAIL and CADENCE_OWNER_PASSWORD), set once on first start. */
+  owner?: { email: string; password: string; name?: string } | null;
+  /** For tests: how the sharing service finds cloudflared and makes tunnels. */
+  sharing?: Pick<SharingOptions, "binary" | "makeTunnel">;
 }
 
 export interface Cadence {
   server: Server;
+  sharing: SharingService;
   link: MachineLink | null;
   orgs: OrgHost;
   url: string;
@@ -40,14 +49,38 @@ export interface Cadence {
 
 /** Starts Cadence: every organization side by side behind one HTTP server. */
 export async function startCadence(o: CadenceOptions): Promise<Cadence> {
+  // Where Cadence's own pages may be open; canvas frames only talk to these. A public address joins
+  // the list when there is one, and so does each remote viewer's address as it asks for a frame.
   const uiOrigins = [...new Set([`http://${o.host}:${o.port}`, `http://127.0.0.1:${o.port}`, `http://localhost:${o.port}`, "http://127.0.0.1:5173", "http://localhost:5173"])];
+  let listeningPort = o.port;
+  const sharing = new SharingService({
+    dataDir: o.dataDir,
+    port: () => listeningPort,
+    envUrl: o.publicUrl ?? null,
+    onChange: (url) => {
+      if (url) allowParent(url);
+      // Links agents hand out (webhooks, shared docs) point at the public address while there is one.
+      if (!o.publicUrl) {
+        if (url) process.env.CADENCE_PUBLIC_URL = url;
+        else delete process.env.CADENCE_PUBLIC_URL;
+      }
+    },
+    ...o.sharing,
+  });
+  const allowParent = (origin: string) => {
+    const clean = new URL(origin).origin;
+    if (uiOrigins.includes(clean)) return;
+    uiOrigins.push(clean);
+    for (const e of orgs.all()) e.container.parentOriginsChanged();
+  };
+  if (o.publicUrl) uiOrigins.push(new URL(o.publicUrl).origin);
   const orgs = new OrgHost(new OrgRegistry(o.dataDir), {
     apiToken: o.apiToken,
     trustLocal: o.trustLocal,
     makeContainer: (org) => {
       let env: (model?: string) => NodeJS.ProcessEnv = () => process.env;
       const runtime = o.runtimeFor(org, (model?: string) => env(model));
-      const container = createContainer({ dataDir: org.dir, runtime, llm: o.llm, uiOrigins, org: () => ({ id: org.id, name: orgs.registry.get(org.id)?.name ?? org.name }), ...o.containerOptions });
+      const container = createContainer({ dataDir: org.dir, runtime, llm: o.llm, uiOrigins, sharing, allowParent, org: () => ({ id: org.id, name: orgs.registry.get(org.id)?.name ?? org.name }), ...o.containerOptions });
       env = (model) => container.providers.env("claude-code", model);
       return container;
     },
@@ -73,9 +106,11 @@ export async function startCadence(o: CadenceOptions): Promise<Cadence> {
   orgs.openAll();
 
   const first = orgs.get(DEFAULT_ORG)!;
+  // A new team server: the owner's sign-in comes from the environment, once.
+  if (o.owner && !first.container.auth.hasTeam()) await first.container.auth.bootstrapOwner(o.owner);
   if (o.host !== "127.0.0.1" && o.host !== "localhost" && !o.apiToken && !first.container.auth.hasTeam()) {
     orgs.stopAll();
-    throw new Error("Refusing to listen on a network address before sign-in is set up. Set a password in Settings > Members (or CADENCE_API_TOKEN) first.");
+    throw new Error("Refusing to listen on a network address before sign-in is set up. Set CADENCE_OWNER_EMAIL and CADENCE_OWNER_PASSWORD (or CADENCE_API_TOKEN), or set a password in Settings > Members first.");
   }
 
   const app = express();
@@ -84,6 +119,7 @@ export async function startCadence(o: CadenceOptions): Promise<Cadence> {
   // Event streams stay uncompressed so each event goes out as it happens.
   app.use(compression({ filter: (req, res) => !String(res.getHeader("Content-Type") ?? "").startsWith("text/event-stream") && compression.filter(req, res) }));
   app.use("/api/orgs", orgRoutes(orgs, { apiToken: o.apiToken, trustLocal: o.trustLocal }));
+  app.use("/api/sharing", sharingRoutes(sharing, () => first.container.auth, () => ({ apiToken: o.apiToken, trustLocal: o.trustLocal, cookie: first.cookie })));
   // This install's link to a hub; it learns the port once the server is listening.
   let link: MachineLink | null = null;
   let linkRouter: express.Router | null = null;
@@ -105,6 +141,8 @@ export async function startCadence(o: CadenceOptions): Promise<Cadence> {
     throw err.code === "EADDRINUSE" ? new Error(`Port ${o.port} is already in use (is Cadence already running?). Stop the other process or set CADENCE_PORT.`) : err;
   });
   const port = (server.address() as AddressInfo).port;
+  listeningPort = port;
+  sharing.resume();
   // Other harnesses reach their session's board tools over loopback.
   orgs.listening(`http://127.0.0.1:${port}`);
   orgs.attachUpgrades(server);
@@ -113,11 +151,13 @@ export async function startCadence(o: CadenceOptions): Promise<Cadence> {
   link.start();
   return {
     server,
+    sharing,
     orgs,
     url: `http://${o.host}:${port}`,
     link,
     close: async () => {
       link?.stop();
+      await sharing.stopAll();
       orgs.stopAll();
       server.closeAllConnections();
       await new Promise((r) => server.close(() => r(undefined)));

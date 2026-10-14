@@ -169,6 +169,11 @@ export const api = {
     request<ChatDetail & { earlier: boolean }>("GET", `/chats/${id}?${"after" in opts ? `after=${opts.after}` : `limit=${opts.limit}${opts.before ? `&before=${opts.before}` : ""}`}`),
   transferChat: (id: string, workspaceId: string) => request<Chat>("POST", `/chats/${id}/transfer`, { workspaceId }),
   providers: () => request<ProviderStatus[]>("GET", "/providers"),
+  /** Whether people elsewhere can reach this Cadence, and the owner's tunnel controls. */
+  sharing: () => request<SharingStatus & { canManage: boolean }>("GET", "/sharing"),
+  startSharing: (mode: "quick" | "named") => request<SharingStatus>("POST", "/sharing/start", { mode }),
+  stopSharing: () => request<SharingStatus>("POST", "/sharing/stop"),
+  setNamedTunnel: (tunnel: { token: string; url: string } | null) => request<SharingStatus>("PUT", "/sharing/named", { tunnel }),
   updateProvider: (id: ProviderId, patch: { command?: string | null; cliCommand?: string | null; env?: Record<string, string | null>; modelEnv?: Record<string, Record<string, string | null>> }) => request<ProviderStatus>("PUT", `/providers/${id}`, patch),
   /** Opens a terminal running the harness's own sign-in. */
   providerSignIn: (id: ProviderId) => request<TerminalInfo>("POST", `/providers/${id}/sign-in`, { cols: 100, rows: 24 }),
@@ -376,3 +381,5 @@ import type { AssetLibraries } from "../../canvas/assets";
 import type { NewElement } from "../../canvas/new-elements";
 export type { ClaudeAccount } from "../../agents/claude-binary";
 import type { ClaudeAccount } from "../../agents/claude-binary";
+export type { SharingStatus } from "../../sharing/service";
+import type { SharingStatus } from "../../sharing/service";

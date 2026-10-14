@@ -6,7 +6,7 @@ import type { ProviderId } from "../../../../core/providers";
 import { api, ApiError } from "../../api";
 import { navigate } from "../../App";
 import { Button, ErrorText, inputClass, modelsFor, ProviderSelect, timeAgo, useAction } from "../ui";
-import { desktop } from "../../desktop";
+import { localDesktop as desktop } from "../../desktop";
 
 type Kind = "mockup" | "prototype" | "blank";
 

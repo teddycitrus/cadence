@@ -62,6 +62,7 @@ import { ToolBridge } from "../agents/tool-bridge";
 import { Runtimes } from "../agents/registry";
 import type { ProviderId } from "../core/providers";
 import { useToolchain } from "../projects/node-toolchain";
+import type { SharingService } from "../sharing/service";
 
 export interface ContainerOptions {
   dataDir: string;
@@ -79,6 +80,10 @@ export interface ContainerOptions {
   uiOrigins?: string[];
   /** Stands in for Slack's Socket Mode WebSocket in tests. */
   slackSocket?: (url: string) => import("ws").WebSocket;
+  /** How people elsewhere reach this Cadence, and public addresses for frame servers they view. */
+  sharing?: SharingService;
+  /** Adds a page origin canvas frames may talk to (a remote viewer's Cadence address). */
+  allowParent?: (origin: string) => void;
 }
 
 export type Container = ReturnType<typeof createContainer>;
@@ -160,6 +165,10 @@ export function createContainer(options: ContainerOptions) {
     auth,
     canvases,
     canvasDev,
+    sharing: options.sharing ?? null,
+    allowParent: options.allowParent ?? (() => undefined),
+    /** The list of origins frames may talk to grew: frame pages loaded from now on know them. */
+    parentOriginsChanged: () => canvasDev.parentOriginsChanged(),
     canvasRender,
     canvasApps,
     builtInBrowser,

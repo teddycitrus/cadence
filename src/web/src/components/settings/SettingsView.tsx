@@ -15,6 +15,7 @@ import { PersonalSettings } from "./PersonalSettings";
 import { ProvidersSettings } from "./ProvidersSettings";
 import { OrgSettings } from "./OrgSettings";
 import { UsageSettings } from "./UsageSettings";
+import { DesktopConnection } from "./DesktopConnection";
 
 type Section = "usage" | "machines" | "organization" | "preferences" | "personal" | "providers" | "members" | "stages" | "labels" | "projects" | "github" | "integrations";
 
@@ -30,6 +31,7 @@ function Preferences({ snapshot }: { snapshot: Snapshot }) {
   const [size, setSize] = useState(uiSize);
   return (
     <div className="max-w-2xl space-y-5">
+      <DesktopConnection />
       <Field label="Theme" hint="Saved in this browser.">
         <div className="flex gap-1">
           {(["light", "dark", "system"] as const).map((t) => (

@@ -4,6 +4,7 @@ import type { Snapshot, TriggerInput, TriggerKind } from "../../../../core/types
 import { GITHUB_EVENTS, ISSUE_TYPES, SLACK_EVENTS } from "../../../../core/types";
 import { api, type TriggerStatus } from "../../api";
 import { Button, Dot, ErrorText, inputClass, timeAgo, useAction } from "../ui";
+import { linkOrigin } from "../../public-url";
 
 const KINDS: { kind: TriggerKind; label: string; hint: string }[] = [
   { kind: "assigned", label: "Given to this agent", hint: "Starts when someone hands this agent an issue." },
@@ -164,7 +165,7 @@ export function TriggersEditor({ triggers, onChange, snapshot, agentId }: { trig
   }, [agentId, JSON.stringify(triggers)]);
   const remove = (i: number) => onChange(triggers.filter((_, j) => j !== i));
   const available = KINDS.filter((k) => k.kind === "schedule" || k.kind === "webhook" || !triggers.some((t) => t.kind === k.kind));
-  const origin = window.location.origin;
+  const origin = linkOrigin();
 
   return (
     <div className="space-y-2">

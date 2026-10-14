@@ -20,6 +20,10 @@ export type DesktopEvent = { type: "menu"; action: "settings" | "shortcuts" | "r
 
 interface DesktopBridge {
   platform: string;
+  /** Which Cadence the window shows: this computer's, or a team's server it joined. */
+  connection: { mode: "local" | "team"; url: string | null };
+  joinServer: (address: string) => Promise<{ ok: boolean; error?: string }>;
+  useThisComputer: () => Promise<void>;
   pickFolder: (title?: string) => Promise<string | null>;
   pathForFile: (file: File) => string | null;
   revealPath: (path: string) => Promise<boolean>;
@@ -32,6 +36,9 @@ interface DesktopBridge {
 
 /** The bridge when running in the desktop app, else null. */
 export const desktop: DesktopBridge | null = (globalThis as { cadenceDesktop?: DesktopBridge }).cadenceDesktop ?? null;
+
+/** The bridge while the window shows this computer's Cadence: its folder picker and file paths mean something there, not on a team's server. */
+export const localDesktop: DesktopBridge | null = desktop?.connection?.mode === "local" ? desktop : null;
 
 /** What the system file manager is called here, for "Reveal in ..." labels. */
 export const fileManager = desktop?.platform === "darwin" ? "Finder" : desktop?.platform === "win32" ? "File Explorer" : "Files";

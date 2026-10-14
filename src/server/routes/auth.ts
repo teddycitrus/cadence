@@ -67,9 +67,9 @@ export function publicAuthRoutes(c: Container, o: AuthOptions): Router {
 
 const RoleInput = z.enum(["admin", "member"]);
 
-/** The accept-invite link, on the address the person inviting is using. */
-function inviteLink(req: Request, token: string, orgId: string): string {
-  const origin = typeof req.headers.origin === "string" && /^https?:\/\//.test(req.headers.origin) ? req.headers.origin : `${req.protocol}://${req.headers.host}`;
+/** The accept-invite link: on Cadence's public address when it has one, else the address the person inviting is using. */
+function inviteLink(req: Request, token: string, orgId: string, publicUrl: string | null): string {
+  const origin = publicUrl ? new URL(publicUrl).origin : typeof req.headers.origin === "string" && /^https?:\/\//.test(req.headers.origin) ? req.headers.origin : `${req.protocol}://${req.headers.host}`;
   return `${origin}/#/invite/${token}${orgId === "default" ? "" : `?org=${encodeURIComponent(orgId)}`}`;
 }
 
@@ -144,7 +144,7 @@ export function memberRoutes(c: Container): Router {
     if (email) {
       const org = c.org();
       try {
-        await c.mailer.send(c.mailer.inviteMail({ to: email, orgName: org.name, inviter: c.q.member(identityOf(res).memberId)?.name ?? "Someone", role, link: inviteLink(req, created.token, org.id), expiresAt: created.invite.expiresAt }));
+        await c.mailer.send(c.mailer.inviteMail({ to: email, orgName: org.name, inviter: c.q.member(identityOf(res).memberId)?.name ?? "Someone", role, link: inviteLink(req, created.token, org.id, c.sharing?.publicUrl() ?? null), expiresAt: created.invite.expiresAt }));
       } catch (err) {
         // A link nobody received is no use; take it back.
         c.auth.revokeInvite(created.invite.id);
@@ -185,7 +185,7 @@ export function memberRoutes(c: Container): Router {
     let emailed = false;
     if (c.mailer.status().configured) {
       const org = c.org();
-      await c.mailer.send(c.mailer.inviteMail({ to: approved.request.email, orgName: org.name, inviter: c.q.member(identityOf(res).memberId)?.name ?? "Someone", role, link: inviteLink(req, approved.token, org.id), expiresAt: approved.invite.expiresAt }));
+      await c.mailer.send(c.mailer.inviteMail({ to: approved.request.email, orgName: org.name, inviter: c.q.member(identityOf(res).memberId)?.name ?? "Someone", role, link: inviteLink(req, approved.token, org.id, c.sharing?.publicUrl() ?? null), expiresAt: approved.invite.expiresAt }));
       emailed = true;
     }
     res.json({ ...approved, emailed });

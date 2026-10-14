@@ -77,11 +77,11 @@ export class AppProxies {
   private start(target: URL): Promise<string> {
     const port = Number(target.port || 80);
     const host = target.hostname === "localhost" ? "127.0.0.1" : target.hostname;
-    const bridge = classicBridge(this.parentOrigins);
     const server = createServer((req, res) => {
       if (req.url === BRIDGE_PATH) {
         res.writeHead(200, { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-store" });
-        res.end(bridge);
+        // Built per request: the origins it may talk to grow when people view from elsewhere.
+        res.end(classicBridge(this.parentOrigins));
         return;
       }
       this.forward(req, res, host, port, target.origin);

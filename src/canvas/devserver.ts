@@ -8,7 +8,7 @@ import type { Plugin, PluginOption, ViteDevServer } from "vite";
 import type { Queries } from "../core/queries";
 import { git } from "../git/git";
 import type { WorkspaceService } from "../workspaces/service";
-import { cadenceCanvasPlugin } from "./vite-plugin";
+import { BRIDGE_MODULE_ID, cadenceCanvasPlugin } from "./vite-plugin";
 
 const CONFIG_FILES = ["vite.config.ts", "vite.config.mts", "vite.config.js", "vite.config.mjs"];
 const IDLE_MS = 20 * 60_000;
@@ -225,6 +225,14 @@ export class CanvasDevServers {
   private sweep(): void {
     const now = Date.now();
     for (const [id, r] of this.running) if (now - r.lastUsed > IDLE_MS) void this.stop(id);
+  }
+
+  /** The bridge script embeds the origins frames may talk to; drop its cached copy so new frame loads get the current list. */
+  parentOriginsChanged(): void {
+    for (const r of this.running.values()) {
+      const mod = r.server.moduleGraph.getModuleById(BRIDGE_MODULE_ID);
+      if (mod) r.server.moduleGraph.invalidateModule(mod);
+    }
   }
 
   touch(workspaceId: string): void {

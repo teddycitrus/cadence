@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Snapshot } from "../../../../core/types";
 import { api, type MachineLinkStatus, type MachineSummary, type MachineView } from "../../api";
 import { Button, ErrorText, Field, inputClass, timeAgo, useAction } from "../ui";
+import { linkOrigin } from "../../public-url";
 
 /** What is running and waiting on one machine, with approvals answered from here. */
 function MachineActivity({ machine }: { machine: MachineView }) {
@@ -115,7 +116,7 @@ export function MachinesSettings({ snapshot }: { snapshot: Snapshot }) {
     };
   }, []);
 
-  const command = created ? `CADENCE_HUB_URL=${window.location.origin} CADENCE_MACHINE_TOKEN=${created.token} npm start` : "";
+  const command = created ? `CADENCE_HUB_URL=${linkOrigin()} CADENCE_MACHINE_TOKEN=${created.token} npm start` : "";
   return (
     <div className="max-w-2xl space-y-8">
       <section className="space-y-3">

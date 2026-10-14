@@ -66,10 +66,12 @@ agent picks up an issue, works in its own workspace, opens a pull request, and
 hands off to the next stage, while the people on the team steer, review, and
 sign off.
 
-Everything runs on your machine. Your code stays in your repositories, agents
-run through the harnesses you already use (Claude Code, Codex, Cursor and
-others) with your own logins or keys, and nothing is sent to a hosted service
-that you did not set up.
+It is built for teams. Teammates join with their own accounts and work the same
+board, docs, and canvases live, from the desktop app or a browser. Run Cadence
+on your own computer and share it with a click, or run it as a team server that
+everyone joins. Either way, agents run through the harnesses you already use
+(Claude Code, Codex, Cursor and others) with your own logins or keys, and
+nothing goes through a hosted service you did not set up.
 
 ### How It Fits Together
 
@@ -214,6 +216,23 @@ own (`npm start`), these environment variables apply:
 Cadence refuses to listen on a network address until a password or
 `CADENCE_API_TOKEN` is set, so a team server is never left open by accident.
 
+### Working As A Team
+
+There are two ways to let teammates in, and both make everyone sign in with
+their own account:
+
+- **Share this computer.** In Settings > Members, the owner turns on sharing.
+  Cadence gets a public HTTPS address through a free Cloudflare tunnel (a new
+  address each time, or a fixed one from your own Cloudflare account), and
+  invite links use it. It works while your computer is on.
+- **Run a team server.** Deploy Cadence with Docker (or Railway, Fly.io, or any
+  VPS) so it is always on. Teammates join it from the desktop app under
+  Settings > Preferences, or open it in a browser. See
+  [docs/team-server.md](docs/team-server.md).
+
+Teammates on other computers see live canvas previews too: each preview gets
+its own temporary address, so a project's code never runs on Cadence's own.
+
 ### Accounts And Keys
 
 Cadence has no hosted service and no account of its own. Everything it talks
@@ -247,6 +266,7 @@ or `GH_TOKEN`) work too when running the server yourself, and
 - [x] Docs with live co-editing
 - [x] Canvases with source write-back and screenshot checks in CI
 - [x] Teams, share links, organizations, and remote computers
+- [x] Sharing from your computer, and a deployable team server
 - [x] Desktop app with an installer
 - [x] Automatic updates from GitHub releases
 - [ ] Code signing

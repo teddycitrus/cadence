@@ -2,7 +2,7 @@ import { git } from "../../git/git";
 import { ARRANGE_OPS, type ArrangeOp } from "../../canvas/arrange";
 import { currentActor } from "../../auth/context";
 import { branchCanvases } from "../../canvas/branches";
-import { hostActions, identityOf } from "../auth-middleware";
+import { addressedLocally, hostActions, identityOf } from "../auth-middleware";
 import { REACTIONS } from "../../core/types";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
@@ -61,12 +61,33 @@ function png(res: Response, data: Buffer | null) {
   res.end(data);
 }
 
+/** The Cadence address a request's page is open on, for frames to talk back to. */
+function viewerOrigin(req: Request): string {
+  const origin = req.headers.origin;
+  if (origin && origin !== "null") return origin;
+  const proto = String(req.headers["x-forwarded-proto"] ?? req.protocol).split(",")[0]!.trim();
+  return `${proto}://${req.headers["x-forwarded-host"] ?? req.headers.host}`;
+}
+
 /** Canvases in one workspace, mounted at /api/workspaces/:id/canvas. */
 export function canvasRoutes(c: Container): Router {
   const r = Router({ mergeParams: true });
 
+  /**
+   * A frame server's address for the person asking. On this computer that is the server itself;
+   * someone on another computer gets a public address of its own (a site apart from Cadence's,
+   * so the project's code never runs where their sign-in does).
+   */
+  const forViewer = async (req: Request, url: string): Promise<string> => {
+    if (addressedLocally(req)) return url;
+    if (!c.sharing) throw new ValidationError("Canvas previews can only be opened on the computer running Cadence");
+    c.allowParent(viewerOrigin(req));
+    return c.sharing.frameUrl(Number(new URL(url).port));
+  };
+
   r.get("/", async (req, res) => {
-    res.json({ canvases: await c.canvases.list(wsId(req)), dev: c.canvasDev.get(wsId(req)) });
+    const dev = c.canvasDev.get(wsId(req));
+    res.json({ canvases: await c.canvases.list(wsId(req)), dev: dev && { ...dev, url: await forViewer(req, dev.url).catch(() => dev.url) } });
   });
 
   r.post("/", (req, res) => {
@@ -76,7 +97,8 @@ export function canvasRoutes(c: Container): Router {
 
   /** Starts (or returns) the workspace's canvas devserver. */
   r.post("/dev", async (req, res) => {
-    res.json(await c.canvasDev.ensure(wsId(req)));
+    const dev = await c.canvasDev.ensure(wsId(req));
+    res.json({ ...dev, url: await forViewer(req, dev.url) });
   });
 
   // The editor re-reads its canvas every few seconds to catch edits on disk; an unchanged file
@@ -135,7 +157,8 @@ export function canvasRoutes(c: Container): Router {
   /** Where this canvas's route frames load from in a frame: the app's own dev server, through the bridge proxy. */
   r.post("/app", async (req, res) => {
     const { path } = PathInput.parse(req.body);
-    res.json(await c.canvasApps.frameUrl(wsId(req), c.canvases.read(wsId(req), path)));
+    const frame = await c.canvasApps.frameUrl(wsId(req), c.canvases.read(wsId(req), path));
+    res.json(frame && { ...frame, proxyUrl: await forViewer(req, frame.proxyUrl) });
   });
 
   /** Whether the project's build stamps source locations for its own dev server (Next.js, Expo). */

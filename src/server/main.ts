@@ -5,7 +5,8 @@ import { ClaudeCodeRuntime } from "../agents/claude-runtime";
 import { startCadence } from "./serve";
 
 const dataDir = resolve(process.env.CADENCE_DATA_DIR ?? "data");
-const port = Number(process.env.CADENCE_PORT ?? 4317);
+// PORT is what hosting platforms (Railway, Render, Fly) assign; CADENCE_PORT wins when both are set.
+const port = Number(process.env.CADENCE_PORT ?? process.env.PORT ?? 4317);
 const host = process.env.CADENCE_HOST ?? "127.0.0.1";
 const apiToken = process.env.CADENCE_API_TOKEN || null;
 
@@ -17,6 +18,9 @@ try {
     apiToken,
     trustLocal: process.env.CADENCE_TRUST_LOCAL ? process.env.CADENCE_TRUST_LOCAL !== "0" : !apiToken,
     staticDir: fileURLToPath(new URL("../../dist/web", import.meta.url)),
+    // A team server: where people reach it, and its owner's first sign-in.
+    publicUrl: process.env.CADENCE_PUBLIC_URL || null,
+    owner: process.env.CADENCE_OWNER_EMAIL && process.env.CADENCE_OWNER_PASSWORD ? { email: process.env.CADENCE_OWNER_EMAIL, password: process.env.CADENCE_OWNER_PASSWORD, name: process.env.CADENCE_OWNER_NAME } : null,
     llm: new AnthropicLlm(),
     runtimeFor: (_org, env) => {
       const claude = new ClaudeCodeRuntime();

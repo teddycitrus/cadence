@@ -3,8 +3,10 @@ import { orgParam } from "../../org";
 import type { Snapshot } from "../../../../core/types";
 import { api } from "../../api";
 import { Button, ErrorText, Field, inputClass, timeAgo, useAction, UserAvatar } from "../ui";
+import { linkOrigin } from "../../public-url";
+import { AccessSettings } from "./AccessSettings";
 
-const inviteUrl = (token: string) => `${window.location.origin}/#/invite/${token}${orgParam()}`;
+const inviteUrl = (token: string) => `${linkOrigin()}/#/invite/${token}${orgParam()}`;
 
 function Profile({ snapshot }: { snapshot: Snapshot }) {
   const me = snapshot.members.find((m) => m.id === snapshot.viewer.memberId);
@@ -250,6 +252,7 @@ export function MembersSettings({ snapshot }: { snapshot: Snapshot }) {
   return (
     <div className="max-w-2xl space-y-8">
       <Profile snapshot={snapshot} />
+      {snapshot.viewer.role !== "member" && <AccessSettings />}
       <Team snapshot={snapshot} />
       {snapshot.viewer.role !== "member" && <EmailSettings />}
     </div>

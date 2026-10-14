@@ -11,7 +11,8 @@ export { LOC_ATTR, stampLocations } from "../../packages/cadence-build/stamp.cjs
 import { stampLocations } from "../../packages/cadence-build/stamp.cjs";
 
 const STORY_ENTRY = "\0cadence-story";
-const BRIDGE_ID = "\0cadence-bridge";
+/** The bridge module, by its resolved id (the devserver invalidates it when the allowed origins change). */
+export const BRIDGE_MODULE_ID = "\0cadence-bridge";
 /** Component-format canvases import their tags from a module (JSX_TAG_MODULE); the canvas devserver serves a stand-in. */
 const JSX_TAGS_ID = "\0cadence-jsx-tags";
 
@@ -86,13 +87,13 @@ export function cadenceCanvasPlugin(root: string, parentOrigins: string[]): Plug
     name: "cadence-canvas",
     enforce: "pre",
     resolveId(id) {
-      if (id === "/@cadence/bridge" || id === BRIDGE_ID) return BRIDGE_ID;
+      if (id === "/@cadence/bridge" || id === BRIDGE_MODULE_ID) return BRIDGE_MODULE_ID;
       if (JSX_TAG_MODULE.test(id)) return JSX_TAGS_ID;
       if (id.startsWith("/@cadence/story?")) return STORY_ENTRY + id.slice("/@cadence/story".length);
       return null;
     },
     load(id) {
-      if (id === BRIDGE_ID) return BRIDGE_SOURCE.replace("__PARENT_ORIGINS__", JSON.stringify(parentOrigins));
+      if (id === BRIDGE_MODULE_ID) return BRIDGE_SOURCE.replace("__PARENT_ORIGINS__", JSON.stringify(parentOrigins));
       if (id === JSX_TAGS_ID) return JSX_TAGS_SOURCE;
       if (!id.startsWith(STORY_ENTRY)) return null;
       const params = new URLSearchParams(id.slice(STORY_ENTRY.length + 1));

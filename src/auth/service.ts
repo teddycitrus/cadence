@@ -135,6 +135,15 @@ export class AuthService {
     this.write("sessions", this.read<Session>("sessions").filter((s) => s.memberId !== id));
   }
 
+  /** A new team server's owner account, from its environment (CADENCE_OWNER_EMAIL and CADENCE_OWNER_PASSWORD). */
+  async bootstrapOwner(input: { email: string; password: string; name?: string }): Promise<void> {
+    this.ensureOwner();
+    const email = normEmail(input.email);
+    if (!EMAIL.test(email)) throw new ValidationError("CADENCE_OWNER_EMAIL does not look like an email address");
+    await this.setPassword("me", input.password);
+    this.store.append({ aggregate: "member", type: "MemberUpdated", aggregateId: "me", payload: { email, ...(input.name?.trim() ? { name: input.name.trim().slice(0, 80) } : {}) } }, "system");
+  }
+
   async setPassword(memberId: string, password: string): Promise<void> {
     this.memberOrThrow(memberId);
     const weak = checkPasswordStrength(password);

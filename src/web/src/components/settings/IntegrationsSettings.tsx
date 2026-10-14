@@ -3,6 +3,7 @@ import { McpServersSettings } from "./McpServersSettings";
 import { orgParam } from "../../org";
 import { api, type Integrations, type LinearStatus, type McpToken, type SlackStatus } from "../../api";
 import { Button, ErrorText, Field, inputClass, timeAgo, useAction } from "../ui";
+import { linkOrigin } from "../../public-url";
 
 function Card({ title, status, children }: { title: string; status: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -225,7 +226,7 @@ function McpAccess() {
   useEffect(() => {
     api.mcpTokens().then(setTokens, () => undefined);
   }, []);
-  const url = `${window.location.origin}/mcp${orgParam()}`;
+  const url = `${linkOrigin()}/mcp${orgParam()}`;
 
   return (
     <Card title="MCP access for outside agents" status={tokens.length ? on(`${tokens.length} token${tokens.length === 1 ? "" : "s"}`) : off("No tokens")}>

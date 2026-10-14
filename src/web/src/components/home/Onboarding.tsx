@@ -8,6 +8,9 @@ import { Generate, ImportRepo, OpenFolder } from "./HomeView";
 import { Requirements } from "./Requirements";
 import { ConnectAccounts } from "./ConnectAccounts";
 import { openWelcome } from "./welcome";
+import { linkOrigin } from "../../public-url";
+import { DesktopConnection } from "../settings/DesktopConnection";
+import { localDesktop } from "../../desktop";
 export { needsOnboarding } from "./needs-onboarding";
 
 const ROLES = [
@@ -47,7 +50,7 @@ function Invite() {
             action.run(async () => {
               const r = await api.createInvite("member", email.trim() || undefined);
               if (r.emailed) setSent((s) => [...s, email.trim()]);
-              else setLink(`${window.location.origin}/#/invite/${r.token}${orgParam()}`);
+              else setLink(`${linkOrigin()}/#/invite/${r.token}${orgParam()}`);
               setEmail("");
             })
           }
@@ -196,6 +199,14 @@ export function Onboarding({ snapshot, onClose }: { snapshot: Snapshot; onClose:
             <Button variant="primary" disabled={!role || action.busy} onClick={() => action.run(async () => (await api.setOnboarding({ jobRole: role! }), next()))}>
               Continue
             </Button>
+            {localDesktop && (
+              <details className="pt-4">
+                <summary className="cursor-pointer text-sm text-zinc-400 hover:text-zinc-200">Joining a team that already uses Cadence? Connect to its server instead</summary>
+                <div className="mt-3">
+                  <DesktopConnection compact />
+                </div>
+              </details>
+            )}
           </section>
         )}
         {step === "setup" && (

@@ -16,6 +16,7 @@ import { setUiSize, stepUiSize } from "./theme";
 import { needsOnboarding } from "./components/home/needs-onboarding";
 import { desktop, useDesktopEvents, type DesktopEvent } from "./desktop";
 import { LogoLoader } from "./components/Logo";
+import { refreshLinkOrigin } from "./public-url";
 
 // The doc editor (TipTap, mermaid) is heavy, so it loads on first use.
 const DocsView = lazy(() => import("./components/DocsView").then((m) => ({ default: m.DocsView })));
@@ -155,6 +156,11 @@ function SignedInApp() {
   useEffect(() => {
     void desktop?.updateState().then((s) => setUpdateReady(s.status === "ready" ? s.next : null));
   }, []);
+  // Links people send each other use Cadence's public address when it has one.
+  const signedInAs = data?.viewer.memberId;
+  useEffect(() => {
+    if (signedInAs) void refreshLinkOrigin();
+  }, [signedInAs]);
   const [quickOpen, setQuickOpen] = useState(false);
   // Disconnected for more than a few seconds (a blip is not worth a banner).
   const [outage, setOutage] = useState(false);
