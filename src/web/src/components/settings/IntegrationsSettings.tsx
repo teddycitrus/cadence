@@ -44,7 +44,7 @@ function SlackIdentityForm({ status, onChange }: { status: SlackStatus; onChange
   );
 }
 
-function Slack({ status, onChange }: { status: SlackStatus; onChange: (s: SlackStatus) => void }) {
+export function Slack({ status, onChange }: { status: SlackStatus; onChange: (s: SlackStatus) => void }) {
   const [bot, setBot] = useState("");
   const [app, setApp] = useState("");
   const [manifest, setManifest] = useState<string | null>(null);
@@ -109,7 +109,7 @@ function Slack({ status, onChange }: { status: SlackStatus; onChange: (s: SlackS
   );
 }
 
-function Linear({ status, onChange }: { status: LinearStatus; onChange: (s: LinearStatus) => void }) {
+export function Linear({ status, onChange }: { status: LinearStatus; onChange: (s: LinearStatus) => void }) {
   const [key, setKey] = useState("");
   const [teams, setTeams] = useState<{ id: string; key: string; name: string }[] | null>(null);
   const action = useAction();
@@ -183,7 +183,7 @@ function Linear({ status, onChange }: { status: LinearStatus; onChange: (s: Line
   );
 }
 
-function Figma({ connected, onChange }: { connected: boolean; onChange: (c: boolean) => void }) {
+export function Figma({ connected, onChange }: { connected: boolean; onChange: (c: boolean) => void }) {
   const [token, setToken] = useState("");
   const action = useAction();
   return (

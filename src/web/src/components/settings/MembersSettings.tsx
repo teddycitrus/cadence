@@ -187,7 +187,7 @@ function Team({ snapshot }: { snapshot: Snapshot }) {
 }
 
 /** The SMTP server invites are sent through (per organization). */
-function EmailSettings() {
+export function EmailSettings() {
   const [status, setStatus] = useState<{ configured: boolean; host: string | null; from: string | null } | null>(null);
   const [form, setForm] = useState({ host: "", port: "587", secure: false, user: "", pass: "", from: "" });
   const action = useAction();

@@ -185,7 +185,7 @@ export function ChatView({ chatId, snapshot }: { chatId: string; snapshot: Snaps
           ))}
           <Composer chat={data?.chat ? { ...chat, slashCommands: data.chat.slashCommands, commandHints: data.chat.commandHints } : chat} snapshot={snapshot} workspaceId={chat.workspaceId} />
           <ErrorText>{cliAction.error}</ErrorText>
-          <p className="flex items-center justify-end gap-3 text-right text-[11px] text-zinc-600">
+          <p className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-right text-[11px] whitespace-nowrap text-zinc-600">
             <span className="mr-auto">
               <BackgroundTasks items={data.items} />
             </span>

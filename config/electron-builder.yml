@@ -29,6 +29,8 @@ win:
   target: nsis
   icon: src/desktop/icon.ico
 nsis:
+  # Dashes, not spaces: GitHub renames spaces in uploaded files, and the update manifest must match.
+  artifactName: ${productName}-Setup-${version}.${ext}
   oneClick: false
   allowToChangeInstallationDirectory: true
 mac:

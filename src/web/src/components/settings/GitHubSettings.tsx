@@ -85,46 +85,58 @@ function Insights({ repos }: { repos: string[] }) {
 }
 
 /** GitHub connection (for pull requests and checks) and PR insights. */
-export function GitHubSettings({ snapshot }: { snapshot: Snapshot }) {
-  const [status, setStatus] = useState(snapshot.github);
+/** Connecting GitHub: a token saved here, or the token or gh login Cadence already found. */
+export function GitHubConnect({ snapshot, onChange }: { snapshot: Snapshot; onChange?: (status: Snapshot["github"]) => void }) {
+  const [status, setStatusState] = useState(snapshot.github);
+  const setStatus = (s: Snapshot["github"]) => (setStatusState(s), onChange?.(s));
   const [token, setToken] = useState("");
   const action = useAction();
+  return (
+    <section className="space-y-3">
+      <p className="text-sm">
+        {status.connected ? <span className="text-emerald-400">● </span> : <span className="text-zinc-500">○ </span>}
+        {status.connected ? SOURCE[status.source ?? ""] : "Not connected. Cadence uses GITHUB_TOKEN, a token saved here, or your gh CLI login, in that order."}
+      </p>
+      <Field label="Personal access token" hint="Needs repo read/write for pull requests and checks. Stored on this machine only and never shown again.">
+        <input className={inputClass} type="password" autoComplete="off" value={token} onChange={(e) => setToken(e.target.value)} placeholder="github_pat_..." />
+      </Field>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          variant="primary"
+          disabled={action.busy || !token.trim()}
+          onClick={() =>
+            action.run(async () => {
+              setStatus(await api.saveGithubToken(token.trim()));
+              setToken("");
+            })
+          }
+        >
+          {action.busy ? "Checking..." : "Save token"}
+        </Button>
+        {status.source === "settings" && (
+          <Button variant="ghost" onClick={() => action.run(async () => setStatus(await api.saveGithubToken(null)))}>
+            Remove saved token
+          </Button>
+        )}
+        <a className="text-xs text-violet-300 hover:underline" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">
+          Create a token on GitHub
+        </a>
+      </div>
+      <ErrorText>{action.error}</ErrorText>
+    </section>
+  );
+}
+
+export function GitHubSettings({ snapshot }: { snapshot: Snapshot }) {
+  const [connected, setConnected] = useState(snapshot.github.connected);
   const repos = [...new Set(snapshot.projects.map((p) => p.githubRepo).filter((r): r is string => Boolean(r)))];
 
   return (
     <div className="max-w-2xl space-y-8">
-      <section className="space-y-3">
-        <p className="text-sm">
-          {status.connected ? <span className="text-emerald-400">● </span> : <span className="text-zinc-500">○ </span>}
-          {status.connected ? SOURCE[status.source ?? ""] : "Not connected. Cadence uses GITHUB_TOKEN, a token saved here, or your gh CLI login, in that order."}
-        </p>
-        <Field label="Personal access token" hint="Needs repo read/write for pull requests and checks. Stored on this machine only and never shown again.">
-          <input className={inputClass} type="password" autoComplete="off" value={token} onChange={(e) => setToken(e.target.value)} placeholder="github_pat_..." />
-        </Field>
-        <div className="flex gap-2">
-          <Button
-            variant="primary"
-            disabled={action.busy || !token.trim()}
-            onClick={() =>
-              action.run(async () => {
-                setStatus(await api.saveGithubToken(token.trim()));
-                setToken("");
-              })
-            }
-          >
-            {action.busy ? "Checking..." : "Save token"}
-          </Button>
-          {status.source === "settings" && (
-            <Button variant="ghost" onClick={() => action.run(async () => setStatus(await api.saveGithubToken(null)))}>
-              Remove saved token
-            </Button>
-          )}
-        </div>
-        <ErrorText>{action.error}</ErrorText>
-      </section>
+      <GitHubConnect snapshot={snapshot} onChange={(s) => setConnected(s.connected)} />
       <section className="space-y-3">
         <h2 className="font-medium">Pull request insights</h2>
-        {status.connected ? <Insights repos={repos} /> : <p className="text-sm text-zinc-500">Connect GitHub to see throughput and time to merge.</p>}
+        {connected ? <Insights repos={repos} /> : <p className="text-sm text-zinc-500">Connect GitHub to see throughput and time to merge.</p>}
       </section>
     </div>
   );

@@ -162,7 +162,8 @@ export function Composer({ chat, snapshot, workspaceId }: { chat: Chat; snapshot
   };
 
   const patch = (p: Parameters<typeof api.updateChat>[1]) => action.run(() => api.updateChat(chat.id, p));
-  const select = "rounded-md bg-transparent px-1.5 py-1 text-xs text-zinc-400 hover:bg-zinc-800 focus:outline-none";
+  // Each control is as wide as its current choice (not its longest option), so the row stays compact.
+  const select = "max-w-48 truncate rounded-md bg-transparent px-1.5 py-1 text-xs text-zinc-400 [field-sizing:content] hover:bg-zinc-800 focus:outline-none";
 
   return (
     <div

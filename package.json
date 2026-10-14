@@ -1,6 +1,6 @@
 {
   "name": "cadence",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "AI software factory: turns feedback into triaged issues, specs, and reviewed pull requests with human approval gates.",
   "scripts": {
     "dev": "concurrently -n api,web -c blue,magenta \"tsx watch src/server/main.ts\" \"vite --config config/vite.config.ts\"",

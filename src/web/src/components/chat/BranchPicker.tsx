@@ -16,7 +16,7 @@ export function BranchPicker({ ws, disabled }: { ws: Workspace; disabled: boolea
   const shown = (branches ?? []).filter((b) => !query || b.toLowerCase().includes(query.toLowerCase()));
   return (
     <span className="relative">
-      <button className="font-mono text-zinc-500 hover:text-zinc-100 disabled:opacity-50" disabled={disabled} onClick={show} title={disabled ? "Wait for the turn to finish" : "Switch this workspace's branch"}>
+      <button className="block max-w-44 truncate font-mono text-zinc-500 hover:text-zinc-100 disabled:opacity-50" disabled={disabled} onClick={show} title={disabled ? "Wait for the turn to finish" : "Switch this workspace's branch"}>
         {ws.branch}
       </button>
       {open && (

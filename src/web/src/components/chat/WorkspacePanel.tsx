@@ -32,7 +32,22 @@ const TABS: { id: Tab; label: string; hint: string }[] = [
 ];
 
 /** The workspace side panel. The terminal stays mounted while hidden so its shells keep streaming. */
-export function WorkspacePanel({ ws, snapshot, run, openPath }: { ws: Workspace; snapshot: Snapshot; run?: (RunDetail & { n: number }) | null; openPath?: { path: string; n: number } | null }) {
+export function WorkspacePanel({
+  ws,
+  snapshot,
+  run,
+  openPath,
+  overlay = false,
+  onClose,
+}: {
+  ws: Workspace;
+  snapshot: Snapshot;
+  run?: (RunDetail & { n: number }) | null;
+  openPath?: { path: string; n: number } | null;
+  /** Opened over the chat (narrow windows) rather than beside it. */
+  overlay?: boolean;
+  onClose?: () => void;
+}) {
   const [tab, setTab] = useState<Tab>(() => {
     try {
       return (localStorage.getItem("cadence.panelTab") as Tab | null) ?? "review";
@@ -120,16 +135,21 @@ export function WorkspacePanel({ ws, snapshot, run, openPath }: { ws: Workspace;
 
   return (
     <aside
-      className={`relative flex max-w-[60%] min-w-72 shrink-0 flex-col border-l border-zinc-900 ${width ? "" : tab === "terminal" ? "w-[34rem]" : tab === "browser" ? "w-[38rem]" : tab === "files" ? "w-[40rem]" : "w-96"}`}
+      className={`flex min-w-72 shrink-0 flex-col border-l border-zinc-800 ${overlay ? "absolute inset-y-0 right-0 z-30 max-w-[92%] bg-zinc-950 shadow-2xl" : "relative max-w-[50%]"} ${width ? "" : tab === "terminal" ? "w-[34rem]" : tab === "browser" ? "w-[38rem]" : tab === "files" ? "w-[40rem]" : "w-96"}`}
       style={width ? { width } : undefined}
     >
       <div className="absolute inset-y-0 -left-1 z-10 w-2 cursor-col-resize hover:bg-violet-500/30" title="Drag to resize; double-click to reset" onPointerDown={resize} onDoubleClick={resetWidth} />
-      <div className="flex gap-1 border-b border-zinc-900 px-2 py-1.5">
+      <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-zinc-900 px-2 py-1.5 [scrollbar-width:none]">
         {TABS.map((t) => (
-          <button key={t.id} title={t.hint} onClick={() => pick(t.id)} onPointerEnter={() => prefetch(t.id)} onFocus={() => prefetch(t.id)} className={`rounded-md px-2 py-1 text-xs ${tab === t.id ? "bg-zinc-800 text-zinc-100" : "text-zinc-400 hover:bg-zinc-900"}`}>
+          <button key={t.id} title={t.hint} onClick={() => pick(t.id)} onPointerEnter={() => prefetch(t.id)} onFocus={() => prefetch(t.id)} className={`shrink-0 rounded-md px-2 py-1 text-xs whitespace-nowrap ${tab === t.id ? "bg-zinc-800 text-zinc-100" : "text-zinc-400 hover:bg-zinc-900"}`}>
             {t.label}
           </button>
         ))}
+        {overlay && onClose && (
+          <button className="ml-auto shrink-0 rounded-md px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100" onClick={onClose} aria-label="Close the side panel">
+            Close
+          </button>
+        )}
       </div>
       {tab === "review" && <ChangesPanel workspaceId={ws.id} root={ws.path} chatIds={chatIds} />}
       {tab === "files" && (

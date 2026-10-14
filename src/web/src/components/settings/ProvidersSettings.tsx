@@ -4,7 +4,7 @@ import { api } from "../../api";
 import { Button, ErrorText, Field, inputClass, useAction } from "../ui";
 import { ProviderSignIn } from "./ProviderSignIn";
 
-function KeyField({ provider, name, onSaved }: { provider: ProviderStatus; name: string; onSaved: () => void }) {
+export function KeyField({ provider, name, onSaved }: { provider: ProviderStatus; name: string; onSaved: () => void }) {
   const [value, setValue] = useState("");
   const action = useAction();
   const set = provider.envSet.includes(name);

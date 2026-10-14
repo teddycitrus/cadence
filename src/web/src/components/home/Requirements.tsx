@@ -1,26 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, type Requirement } from "../../api";
-import { Button, ErrorText, inputClass, useAction } from "../ui";
-import { ProviderSignIn } from "../settings/ProviderSignIn";
-
-/** Setting up a model during first run: sign in with a Claude account, or paste an Anthropic key. */
-function ModelSetup({ onReady }: { onReady: () => void }) {
-  const [key, setKey] = useState("");
-  const action = useAction();
-  return (
-    <div className="space-y-3 px-4 pb-4 pl-9">
-      <ProviderSignIn provider="claude-code" onDone={onReady} />
-      <div className="flex gap-2">
-        <input className={inputClass} type="password" autoComplete="off" placeholder="Or paste an Anthropic API key (sk-ant-...)" value={key} onChange={(e) => setKey(e.target.value)} />
-        <Button disabled={!key.trim() || action.busy} onClick={() => action.run(async () => (await api.updateProvider("claude-code", { env: { ANTHROPIC_API_KEY: key.trim() } }), setKey(""), onReady()))}>
-          Save key
-        </Button>
-      </div>
-      <p className="text-xs text-zinc-500">The key stays on this machine. Codex, Cursor, Grok, and OpenCode can be set up later in Settings &gt; Providers.</p>
-      <ErrorText>{action.error}</ErrorText>
-    </div>
-  );
-}
+import { Button } from "../ui";
 
 /** Node, Git, and Claude Code on this machine: each found (with its version) or a link to install it, and a re-check. */
 export function Requirements({ onContinue }: { onContinue: () => void }) {
@@ -76,7 +56,7 @@ export function Requirements({ onContinue }: { onContinue: () => void }) {
               </div>
             )}
           </div>
-          {r.id === "ai" && !r.installed && <ModelSetup onReady={check} />}
+          {r.id === "ai" && !r.installed && <p className="px-4 pb-4 pl-9 text-xs text-zinc-500">You will connect one in the next step: sign in with your Claude account or paste an API key.</p>}
           </div>
         ))}
       </div>

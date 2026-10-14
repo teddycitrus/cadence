@@ -6,6 +6,7 @@ import { orgParam } from "../../org";
 import { Button, ErrorText, inputClass, useAction } from "../ui";
 import { Generate, ImportRepo, OpenFolder } from "./HomeView";
 import { Requirements } from "./Requirements";
+import { ConnectAccounts } from "./ConnectAccounts";
 import { openWelcome } from "./welcome";
 export { needsOnboarding } from "./needs-onboarding";
 
@@ -17,7 +18,7 @@ const ROLES = [
   { id: "other", label: "Something else" },
 ] as const;
 
-type Step = "role" | "setup" | "project" | "team" | "agents";
+type Step = "role" | "setup" | "connect" | "project" | "team" | "agents";
 
 /** Whether someone should see onboarding: once, and for the owner only while there is nothing here yet. */
 function Dots({ step, steps }: { step: Step; steps: Step[] }) {
@@ -149,11 +150,11 @@ function StarterTasks({ snapshot, projectId, onStarted }: { snapshot: Snapshot; 
   );
 }
 
-/** First run: what you do, a project, your team, and your first agents. Every step can be skipped. */
+/** First run: what you do, this computer's tools, your accounts and keys, a project, your team, and your first agents. Every step can be skipped. */
 export function Onboarding({ snapshot, onClose }: { snapshot: Snapshot; onClose: () => void }) {
   const admin = snapshot.viewer.role !== "member";
   // The machine checks are for whoever runs Cadence; teammates in a browser skip them.
-  const steps: Step[] = admin ? ["role", "setup", "project", "team", "agents"] : ["role"];
+  const steps: Step[] = admin ? ["role", "setup", "connect", "project", "team", "agents"] : ["role"];
   const [step, setStep] = useState<Step>("role");
   // Someone who left part way through picks up with their answer already chosen.
   const [role, setRole] = useState<string | null>(() => snapshot.members.find((m) => m.id === snapshot.viewer.memberId)?.jobRole ?? null);
@@ -202,6 +203,16 @@ export function Onboarding({ snapshot, onClose }: { snapshot: Snapshot; onClose:
             <h1 className="text-3xl font-semibold tracking-tight">Check your setup</h1>
             <p className="text-zinc-400">Cadence builds on tools already on this computer.</p>
             <Requirements onContinue={next} />
+          </section>
+        )}
+        {step === "connect" && (
+          <section className="space-y-4">
+            <h1 className="text-3xl font-semibold tracking-tight">Connect your accounts</h1>
+            <p className="text-zinc-400">Cadence runs on your own logins and keys. Connect at least one AI model; the rest can wait.</p>
+            <ConnectAccounts snapshot={snapshot} />
+            <Button variant="primary" onClick={next}>
+              Continue
+            </Button>
           </section>
         )}
         {step === "project" && (
